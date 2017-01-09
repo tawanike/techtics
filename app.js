@@ -2,18 +2,30 @@ const express = require('express');
 const path = require('path');
 const http = require('http');
 const bodyParser = require('body-parser');
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
+const morgan = require('morgan');
 
-mongoose.connect('mongodb://<username:<password>@ds054619.mlab.com:54619/<database>');
+const DB = require('./server/utils/constants');
+const config = require('./server/utils/config');
+
+mongoose.connect('mongodb://' + DB.user + ':' + DB.password + '@ds054619.mlab.com:54619/' + DB.database);
+const app = express();
+app.set('secret', config.secret);
 
 const api = require('./server/routes/api');
+const admin = require('./server/routes/admin');
 
-const app = express();
+app.use((req, res, next) =>{
+  console.log('Check if user is logged in.');
+  next();
+});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, 'dist')));
+
+app.use(morgan('dev'));
 
 app.use('/api/v1/', api);
 
